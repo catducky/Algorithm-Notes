@@ -405,3 +405,206 @@ int countParenthesesDP(int n) {
 | **列舉組合 $C_k^n$** | 具體路徑 | DFS 回溯（帶 `start` 參數） | $O(k \cdot C_k^n)$ |
 | **求組合總數 $C_k^n$** | 數字大小 | 巴斯卡三角形 DP | $O(n \cdot k)$ |
 | **求合法括號總數** | 數字大小 | 卡特蘭數 DP | $O(n^2)$ |
+
+## 六、容器
+
+C++ STL 常見容器整理。使用時通常需包含對應標頭；競賽環境若支援，也可使用 `#include <bits/stdc++.h>`。
+
+### 1. 序列容器
+
+| 容器 | 標頭 | 特性與常見用途 |
+| :--- | :--- | :--- |
+| `vector<T>` | `<vector>` | 動態陣列；可隨機存取，尾端新增/刪除為均攤 $O(1)$，中間插入/刪除為 $O(n)$。最常用。 |
+| `array<T, N>` | `<array>` | 固定長度陣列，大小在編譯期決定；可使用 `.size()`、迭代器等 STL 介面。 |
+| `deque<T>` | `<deque>` | 雙端佇列；兩端新增/刪除為 $O(1)$，也可隨機存取。 |
+| `list<T>` | `<list>` | 雙向鏈結串列；已知位置的插入/刪除為 $O(1)$，但不能用索引隨機存取。 |
+| `forward_list<T>` | `<forward_list>` | 單向鏈結串列，較省空間；只能向前走，提供 `insert_after`、`erase_after`。 |
+| `string` | `<string>` | 動態字元序列；支援索引、串接、搜尋等操作，常用於文字處理。 |
+
+```cpp
+vector<int> v = {3, 1, 2};
+v.push_back(4);
+sort(v.begin(), v.end()); // 排序：1, 2, 3, 4
+
+deque<int> dq;
+dq.push_front(1);
+dq.push_back(2);          // dq = {1, 2}
+```
+
+`vector` 的尾端新增可能造成重新配置，讓原有的迭代器、指標與參考失效；若已知大約元素數量，可先用 `v.reserve(n)` 減少重新配置。
+
+### 2. 佇列與堆疊容器配接器
+
+| 容器 | 標頭 | 特性與常見用途 |
+| :--- | :--- | :--- |
+| `stack<T>` | `<stack>` | 後進先出（LIFO）；使用 `push`、`pop`、`top`。 |
+| `queue<T>` | `<queue>` | 先進先出（FIFO）；使用 `push`、`pop`、`front`、`back`，常用於 BFS。 |
+| `priority_queue<T>` | `<queue>` | 優先佇列，預設最大值優先；使用 `push`、`pop`、`top`，插入與取出為 $O(\log n)$。 |
+
+```cpp
+queue<int> q;             // FIFO
+q.push(10);
+int first = q.front();
+q.pop();
+
+priority_queue<int> maxHeap; // 預設：最大值優先
+maxHeap.push(3);
+maxHeap.push(8);
+int largest = maxHeap.top(); // 8
+
+priority_queue<int, vector<int>, greater<int>> minHeap; // 最小值優先
+minHeap.push(3);
+minHeap.push(8);
+int smallest = minHeap.top(); // 3
+```
+
+注意：`pop()` 只會移除元素，不會回傳元素；需先透過 `top()`、`front()` 或 `back()` 讀取。
+
+### 3. 有序關聯容器
+
+| 容器 | 標頭 | 特性與常見用途 |
+| :--- | :--- | :--- |
+| `set<T>` | `<set>` | 不重複且依序排列；搜尋、插入、刪除為 $O(\log n)$。 |
+| `multiset<T>` | `<set>` | 依序排列且允許重複；可用 `count(x)` 計算元素數量。 |
+| `map<K, V>` | `<map>` | 依 key 排序的鍵值表；key 唯一，搜尋、插入、刪除為 $O(\log n)$。 |
+| `multimap<K, V>` | `<map>` | 依 key 排序的鍵值表；允許多筆資料使用相同 key。 |
+
+```cpp
+set<int> s = {4, 1, 4}; // 自動去重並排序：{1, 4}
+s.insert(3);
+auto it = s.lower_bound(3); // 第一個 >= 3 的元素
+
+map<string, int> score;
+score["Amy"] = 95;
+if (score.count("Amy")) {
+    cout << score["Amy"];
+}
+```
+
+### 4. 雜湊容器
+
+| 容器 | 標頭 | 特性與常見用途 |
+| :--- | :--- | :--- |
+| `unordered_set<T>` | `<unordered_set>` | 不重複元素，不保證順序；搜尋、插入、刪除平均 $O(1)$。 |
+| `unordered_multiset<T>` | `<unordered_set>` | 不保證順序且允許重複；適合快速計數或判斷元素是否存在。 |
+| `unordered_map<K, V>` | `<unordered_map>` | 不保證順序的唯一 key 鍵值表；操作平均 $O(1)$。 |
+| `unordered_multimap<K, V>` | `<unordered_map>` | 不保證順序且允許重複 key 的鍵值表。 |
+
+雜湊容器的操作最壞情況可能退化至 $O(n)$，而且不適合需要排序或 `lower_bound` 的情況；需要有序結果時使用 `set` / `map`。
+
+### 5. 特殊用途容器
+
+#### `bitset<N>`：固定大小的位元集合
+標頭：`<bitset>`。適合小範圍狀態、集合運算或快速標記；位元運算可一次處理多個布林狀態。
+
+```cpp
+bitset<8> bits;
+bits.set(2);                 // 設定第 2 位
+bits.flip(5);                // 翻轉第 5 位
+bool exists = bits.test(2);
+size_t count = bits.count(); // 計算 1 的個數
+```
+
+#### `span<T>`：檢視連續資料
+標頭：`<span>`（C++20）。`span` 不擁有資料，只提供對陣列或 `vector` 連續區段的檢視；適合將不同來源的連續資料傳給同一個函式。請確保被檢視的資料在使用期間仍然有效。
+
+## 七、Reference（參考）
+
+Reference 是既有變數的另一個名稱（別名），不是一份新的資料。宣告時必須立即綁定到有效物件；綁定後不能改為參考另一個物件。透過 reference 讀寫，等同於直接操作原變數。
+
+```cpp
+int value = 10;
+int& ref = value; // ref 是 value 的別名
+ref = 20;         // value 也變成 20
+```
+
+### 函式參數的傳遞方式
+
+#### 傳值：建立副本
+參數會複製一份資料，函式內修改不影響呼叫端。適用於小型型別，或刻意需要獨立副本時。
+
+```cpp
+void addOne(int x) {
+    x++;
+}
+
+int n = 1;
+addOne(n); // n 仍為 1
+```
+
+#### 傳參考：直接操作原物件
+參數成為呼叫端物件的別名，避免複製大型物件，也能讓函式修改原資料。
+
+```cpp
+void addOne(int& x) {
+    x++;
+}
+
+int n = 1;
+addOne(n); // n 變成 2
+```
+
+#### 傳常數參考：避免複製且禁止修改
+使用 `const T&` 傳入大型物件，可避免複製，同時保證函式不會透過該參數修改物件。這是傳遞唯讀 `string`、`vector` 等大型物件的常見方式。
+
+```cpp
+void printValues(const vector<int>& values) {
+    for (int x : values) {
+        cout << x << " ";
+    }
+    // values.push_back(4); // 編譯錯誤：const reference 不可修改物件
+}
+```
+
+### 函式回傳值與回傳參考
+
+函式宣告的回傳型別寫在函式名稱之前。回傳參考的正確寫法是 `int& f()`，不是 `&int f()`；`int&` 表示回傳型別為「`int` 的參考」。
+
+* **回傳值 `int f()`**：回傳一個值，呼叫端取得結果副本；修改結果不會改到函式內原本的物件。
+* **回傳參考 `int& f()`**：回傳既有物件的別名；呼叫端可透過結果讀寫該物件，不會複製該物件。
+* **回傳常數參考 `const int& f()`**：不複製物件，但呼叫端不能透過結果修改它。
+
+```cpp
+int getValue(vector<int>& values) {
+    return values[0]; // 回傳 int 的值，呼叫端取得副本
+}
+
+int& getReference(vector<int>& values) {
+    return values[0]; // 回傳第一個元素的參考
+}
+
+vector<int> numbers = {10, 20};
+int copied = getValue(numbers);
+int& element = getReference(numbers);
+
+copied = 99;  // numbers[0] 仍是 10
+element = 99; // numbers[0] 也變成 99
+```
+
+#### 容器操作常見的回傳型別
+
+容器提供的元素存取介面通常會回傳參考，讓程式能直接操作容器內的元素；但並非每個容器函式都如此。
+
+| 操作 | 常見回傳型別／行為 | 說明 |
+| :--- | :--- | :--- |
+| `vector<T>::operator[]`、`at()`、`front()`、`back()` | `T&`（容器為 `const` 時是 `const T&`） | 可直接讀寫對應元素。 |
+| `map<K, V>::operator[]` | `V&` | 可讀寫 key 對應的 value；若 key 不存在，會先新增該 key。 |
+| `priority_queue<T>::top()` | `const T&` | 不複製地讀取頂端元素，但不允許直接修改，以免破壞堆積順序。 |
+| `queue<T>::front()`、`back()`；`stack<T>::top()` | `T&`（容器為 `const` 時是 `const T&`） | 參考目前端點或頂端元素。 |
+| `pop()`、`erase()` 等移除操作 | 通常不回傳被移除的元素 | 需要元素時，先讀取 `top()` / `front()` 等，再呼叫移除操作。 |
+
+```cpp
+vector<int> values = {1, 2};
+values[0] = 7;        // operator[] 回傳元素的參考，直接修改容器內容
+int copy = values[0]; // 將元素值複製到 int
+int& ref = values[0]; // ref 綁定到容器中的元素
+```
+
+參考不會擁有或延長容器元素的生命週期。若容器重新配置或刪除該元素，先前取得的參考可能失效；例如 `vector` 擴容時可能使所有元素參考失效。不要保留可能失效的參考供後續使用。
+
+### 使用注意
+
+* Reference 必須在宣告時初始化，且之後不能改綁定到其他物件。
+* 不可回傳指向區域變數的 reference；區域變數離開作用域後就不存在，留下的 reference 會懸空。
+* 可回傳仍然存活的物件或容器元素的 reference，但必須確保其生命週期涵蓋呼叫端使用該 reference 的期間。
+* 若函式不需修改引數且不需建立副本，通常使用 `const T&`；若需修改呼叫端資料，使用 `T&`。
